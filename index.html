@@ -802,6 +802,14 @@ body.tax-categories.term-company footer.fpa-footer {
 @media(prefers-reduced-motion:reduce){
  .memo-download-card,.memo-pdf-foreground,.page-instruction-single-cnt .text.memo-article figure.memo-timeline:after{transition:none!important}
 }
+</style><style id="fpa-memo-mobile-19-11-26">/* Gentle movement of the existing mobile hero illustration. */
+@keyframes fpa-mobile-hero-float{
+ 0%,100%{transform:translate3d(0,0,0)}
+ 50%{transform:translate3d(0,-6px,0)}
+}
+@media(max-width:782px) and (prefers-reduced-motion:no-preference){
+ .memo-hero-art img{animation:fpa-mobile-hero-float 6s ease-in-out infinite;will-change:transform}
+}
 </style></head>
  
     <body class="wp-singular page-template page-template-page-instructions-single page-template-page-instructions-single-php page page-id-368801 page-child parent-pageid-218982 wp-theme-fpa2026 memo-page-2027">
