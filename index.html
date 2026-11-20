@@ -9571,10 +9571,11 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
                     });
                 }
             }());</script>
-<script data-src="lightbox_zoom.js">(function () {
+<script data-src="lightbox_zoom.js">
+(function () {
     'use strict';
     // Лайтбокс изображений инструкций (как на new.fpa.ru) + приближение/отдаление:
-    // Кнопки + / − у краёв изображения, колесо, двойной клик/тап, щипок и перетаскивание.
+    // На мобильном — щипок, двойной тап и перетаскивание; + / − остаются на десктопе.
     if (window.fpaInstructionImageLightboxInitialized) return;
     window.fpaInstructionImageLightboxInitialized = true;
 
@@ -9603,8 +9604,11 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
     function fitBase(width, height) {
         width = width || img.naturalWidth; height = height || img.naturalHeight;
         if (!width || !height) return;
-        var r = stage.getBoundingClientRect(), pad = r.width <= 782 ? 12 : 20;
-        var fit = Math.min(1, (r.width - 2 * pad) / width, (r.height - 2 * pad) / height);
+        var r = stage.getBoundingClientRect(), mobile = r.width <= 782, pad = mobile ? 16 : 20;
+        // The site leaves 10% on mobile and places its 42px close button just outside
+        // the image. Reserve enough room for that button even on narrow phones.
+        var availableWidth = mobile ? Math.min(r.width * .8, r.width - 84) : r.width - 2 * pad;
+        var fit = Math.min(1, availableWidth / width, (r.height - 2 * pad) / height);
         baseWidth = width * fit; baseHeight = height * fit;
         apply(false);
     }
@@ -9620,17 +9624,17 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
         img.style.cursor = scale > 1 ? (drag ? 'grabbing' : 'grab') : 'zoom-in';
         modal.querySelector('[data-zoom="out"]').disabled = scale <= MIN;
         modal.querySelector('[data-zoom="in"]').disabled = scale >= MAX;
-        // Attach the controls to the actual image edge; keep them reachable at the screen edge.
-        var r = stage.getBoundingClientRect(), pad = r.width <= 782 ? 12 : 20;
+        // Match the site's mobile close position; keep desktop controls unchanged.
+        var r = stage.getBoundingClientRect(), mobile = r.width <= 782, pad = mobile ? 16 : 20;
         var close = modal.querySelector('.fpa-instruction-image-modal__close');
         var zoom = modal.querySelector('.fpa-instruction-image-modal__zoom');
         var edge = r.width / 2 + tx + w / 2;
         var top = r.height / 2 + ty - h / 2;
-        var left = clamp(edge + 8, pad, r.width - pad - close.offsetWidth);
+        var left = mobile ? clamp(edge, 0, r.width - close.offsetWidth) : clamp(edge + 8, pad, r.width - pad - close.offsetWidth);
         close.style.transition = 'left ' + transition + ',top ' + transition;
         zoom.style.transition = 'left ' + transition + ',bottom ' + transition;
         close.style.left = left + 'px';
-        close.style.top = clamp(top, pad, r.height - pad - close.offsetHeight) + 'px';
+        close.style.top = clamp(top + (mobile ? 6 : 0), pad, r.height - pad - close.offsetHeight) + 'px';
         zoom.style.left = left + 'px';
         zoom.style.bottom = clamp(r.height - top - h, pad, r.height - pad - zoom.offsetHeight) + 'px';
     }
@@ -9671,7 +9675,7 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
             '.fpa-instruction-image-modal__zoom button:hover:not(:disabled){transform:scale(1.08)}' +
             '.fpa-instruction-image-modal__zoom button:disabled{opacity:.45;cursor:default}' +
             'body.fpa-instruction-image-modal-open{overflow:hidden}' +
-            '@media(max-width:782px){.fpa-instruction-image-modal__close svg,.fpa-instruction-image-modal__zoom button svg{width:36px;height:36px}}' +
+            '@media(max-width:782px){.fpa-instruction-image-modal__zoom{display:none}}' +
             '@media (prefers-reduced-motion:reduce){.fpa-instruction-image-modal,.fpa-instruction-image-modal__content,.fpa-instruction-image-modal__image{transition:none!important}}';
         document.head.appendChild(style);
 
@@ -9794,6 +9798,7 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
 
     window.addEventListener('resize', function () { if (modal && modal.classList.contains('is-open')) fitBase(); });
 })();
+
 </script>
 <script data-src="toc_inline_190297.js">(function () {
             'use strict';
@@ -9897,7 +9902,8 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
     if (mq.addEventListener) mq.addEventListener('change', setPdfLinks); else mq.addListener(setPdfLinks);
 }());
 </script>
-<script id="fpa-memo-accessible-zoom">(function(){
+<script id="fpa-memo-accessible-zoom">
+(function(){
  'use strict';
  // Add keyboard support to the existing site lightbox without replacing its motion/gestures.
  var opener=null,modal=null;
@@ -9906,7 +9912,7 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
   var figure=e.target.closest('figure.memo-timeline');
   if(figure&&(e.key==='Enter'||e.key===' ')){e.preventDefault();figure.click();return;}
   if(!modal||!modal.classList.contains('is-open')||e.key!=='Tab')return;
-  var controls=Array.from(modal.querySelectorAll('button:not(:disabled),[tabindex="0"]'));
+  var controls=Array.from(modal.querySelectorAll('button:not(:disabled),[tabindex="0"]')).filter(function(control){return control.getClientRects().length>0;});
   var first=controls[0],last=controls[controls.length-1];
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
@@ -9920,6 +9926,7 @@ $(window).off('resize.fpaResponsiveLayout').on('resize.fpaResponsiveLayout', fun
  });
  observer.observe(document.body,{childList:true});
 })();
+
 </script><script id="fpa-memo-navigation">(function(){
  'use strict';
  var selector='.aside-instruction-menu a[data-href],.fpa-about-toc a[href^="#"],.table_content a[data-href]';
